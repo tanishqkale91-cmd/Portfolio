@@ -2,7 +2,7 @@
 
 Personal portfolio with an interactive keyboard hero, a scroll-responsive 3D space scene, selected projects, live coding activity, and a contact area that leads into the footer scene.
 
-**Live site:** https://tanishq-kale.vercel.app/
+**Live site:** [portfolio-lovat-pi-speucrunnm.vercel.app](https://portfolio-lovat-pi-speucrunnm.vercel.app/)
 
 ## Features
 
