@@ -1,0 +1,124 @@
+{
+  "measurements": [
+    {
+      "viewport": "1440x810",
+      "headerLeft": 48,
+      "gridLeft": 48,
+      "gridWidth": 1344,
+      "gap": 48,
+      "clusters": [
+        {
+          "name": "Languages",
+          "left": 48
+        },
+        {
+          "name": "Frontend and motion",
+          "left": 744
+        },
+        {
+          "name": "Tools and AI",
+          "left": 48
+        },
+        {
+          "name": "Deployment",
+          "left": 744
+        }
+      ],
+      "scrollWidth": 1440,
+      "innerWidth": 1440
+    },
+    {
+      "viewport": "1440x1002",
+      "headerLeft": 48,
+      "gridLeft": 48,
+      "gridWidth": 1344,
+      "gap": 48,
+      "clusters": [
+        {
+          "name": "Languages",
+          "left": 48
+        },
+        {
+          "name": "Frontend and motion",
+          "left": 744
+        },
+        {
+          "name": "Tools and AI",
+          "left": 48
+        },
+        {
+          "name": "Deployment",
+          "left": 744
+        }
+      ],
+      "scrollWidth": 1440,
+      "innerWidth": 1440
+    },
+    {
+      "viewport": "768x1024",
+      "headerLeft": 25.71875,
+      "gridLeft": 25.71875,
+      "gridWidth": 716.5625,
+      "gap": 32,
+      "clusters": [
+        {
+          "name": "Languages",
+          "left": 25.71875
+        },
+        {
+          "name": "Frontend and motion",
+          "left": 400
+        },
+        {
+          "name": "Tools and AI",
+          "left": 25.71875
+        },
+        {
+          "name": "Deployment",
+          "left": 400
+        }
+      ],
+      "scrollWidth": 768,
+      "innerWidth": 768
+    },
+    {
+      "viewport": "390x844",
+      "headerLeft": 20,
+      "gridLeft": 20,
+      "gridWidth": 350,
+      "gap": 28,
+      "clusters": [
+        {
+          "name": "Languages",
+          "left": 20
+        },
+        {
+          "name": "Frontend and motion",
+          "left": 20
+        },
+        {
+          "name": "Tools and AI",
+          "left": 20
+        },
+        {
+          "name": "Deployment",
+          "left": 20
+        }
+      ],
+      "scrollWidth": 390,
+      "innerWidth": 390
+    }
+  ],
+  "checks": {
+    "reducedMotion": {
+      "stackAnimation": "none",
+      "pressedKeys": 0,
+      "marqueeAnimation": "none",
+      "marqueeDuration": "0s",
+      "staticGrid": true
+    },
+    "webglDisabledFallbackClusters": 4,
+    "abortedSourceStates": "GitHub and LeetCode skeletons appeared, then both error states appeared"
+  },
+  "errors": []
+}

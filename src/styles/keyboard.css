@@ -1,0 +1,222 @@
+/* =============================================================================
+   Sculptural keyboard hero, real DOM <button>/<a> keys styled with CSS.
+
+   Coordinate system (unscaled "composition" space):
+     composition 900 × 312px
+     normal key  146 × 161px
+     top row     y = 0   → P 73, O 219, R 365, T 511
+     lower row   y = 139 → F 0, O 146, L 292, I 438, O 584   (overlaps top row)
+     Enter       x = 657, y = 0, 218 × 300                    (final O overlaps it)
+
+   The composition is scaled with `transform: scale()`; the wrapper's height is
+   set from JS to `312 × scale` so following content flows correctly at any width.
+   ========================================================================== */
+
+.kb-stage {
+  position: relative;
+  width: 100%;
+  /* Focus rings and the 5px key shadows live in the hero's side padding, so
+     nothing here may be clipped. */
+  overflow: visible;
+}
+
+.kb-composition {
+  position: absolute;
+  top: 0;
+  width: 900px;
+  height: 312px;
+  transform: scale(var(--kb-scale, 1));
+  transform-origin: top left;
+}
+
+/* -----------------------------------------------------------------------------
+   Key stacking: lower row above top row, Enter below the final O.
+   Hover/focus raises a key so overlapping slivers stay reachable.
+   -------------------------------------------------------------------------- */
+.kb-key--enter {
+  z-index: 1;
+}
+
+.kb-key--top {
+  z-index: 2;
+}
+
+.kb-key--lower {
+  z-index: 3;
+}
+
+.kb-key:hover,
+.kb-key:focus-visible {
+  z-index: 12;
+}
+
+/* -----------------------------------------------------------------------------
+   Key anatomy: dark outline, 38px outer radius, darker side wall, hard 5px
+   black bottom shadow, plus a raised face inset 10px horizontally that leaves
+   ~33px of visible base below it.
+   -------------------------------------------------------------------------- */
+.kb-key {
+  position: absolute;
+  box-sizing: border-box;
+  display: block;
+  margin: 0;
+  padding: 0;
+  border: 2px solid #111111;
+  border-radius: 38px;
+  background-color: var(--key-base, #d8d8d8);
+  box-shadow: 0 5px 0 0 #000000;
+  color: #111111;
+  text-decoration: none;
+  text-align: center;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  -webkit-tap-highlight-color: transparent;
+  /* Base moves ~5px when a key is deliberately pressed (and ~4px during the
+     automatic sequence, see .is-pressed below). */
+  transform: translateY(var(--key-base-y, 0px));
+  transition: transform 200ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.kb-key__face {
+  position: absolute;
+  box-sizing: border-box;
+  left: 10px;
+  right: 10px;
+  top: 6px;
+  bottom: 33px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30px 8px 8px;
+  border: 2px solid #111111;
+  border-radius: 29px;
+  background-color: var(--key-face, #eeeeee);
+  box-shadow:
+    inset 0 3px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -8px 0 rgba(17, 17, 17, 0.07);
+  overflow: hidden;
+  /* The face is decoration: clicks and hovers always resolve to the key itself. */
+  pointer-events: none;
+  transform: translateY(var(--key-face-y, 0px));
+  transition: transform 180ms cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+
+.kb-key__caption {
+  position: absolute;
+  top: 7px;
+  left: 4px;
+  right: 4px;
+  margin: 0;
+  text-align: center;
+  font-family: 'Manrope Variable', system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #111111;
+  opacity: 0.75;
+  overflow-wrap: break-word;
+  pointer-events: none;
+  user-select: none;
+}
+
+.kb-key__letter {
+  font-family: 'Satoshi', 'Manrope Variable', system-ui, sans-serif;
+  font-size: 72px;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.05em;
+  color: #111111;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Thin angled seams: one on the face (keycap bevel), one across the visible
+   base wall. Both are purely decorative. */
+.kb-key__seam {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 10px;
+  height: 0;
+  border-top: 1.5px solid rgba(17, 17, 17, 0.22);
+  transform: rotate(-4deg);
+  pointer-events: none;
+}
+
+.kb-key__wall {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 12px;
+  height: 0;
+  border-top: 1.5px solid rgba(17, 17, 17, 0.35);
+  transform: rotate(-5deg);
+  pointer-events: none;
+}
+
+/* -----------------------------------------------------------------------------
+   Enter key: large return-arrow symbol + vertical LET'S TALK caption.
+   -------------------------------------------------------------------------- */
+.kb-key--enter .kb-key__face {
+  padding: 24px 42px 18px 16px;
+}
+
+.kb-key__arrow {
+  width: 108px;
+  height: 90px;
+  pointer-events: none;
+}
+
+.kb-key__caption--vertical {
+  top: 50%;
+  right: 12px;
+  left: auto;
+  transform: translateY(-50%);
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  letter-spacing: 0.18em;
+}
+
+/* -----------------------------------------------------------------------------
+   Interaction states.
+     hover / keyboard focus → face depresses ~8px (180ms, handled by the
+                              transition above)
+     active press           → base moves ~5px
+     automatic sequence     → face ~13px, base ~4px (class toggled by React)
+   -------------------------------------------------------------------------- */
+.kb-key:hover,
+.kb-key:focus-visible {
+  --key-face-y: 8px;
+}
+
+.kb-key:active {
+  --key-base-y: 5px;
+}
+
+.kb-key.is-pressed {
+  --key-base-y: 4px;
+  --key-face-y: 13px;
+}
+
+.kb-key:focus-visible {
+  outline: 3px solid #ffdfa0;
+  outline-offset: 6px;
+}
+
+/* Screen-reader-only helper (same clipping behaviour as Tailwind's .sr-only). */
+.kb-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
