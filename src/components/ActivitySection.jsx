@@ -45,7 +45,7 @@ export default function ActivitySection() {
   const weeks = useMemo(() => state.data ? buildWeeks(state.data.contributions) : [], [state.data]);
   const total = state.data ? contributionCount(state.data.total) : null;
   return (
-    <section id="activity" aria-labelledby="activity-title" className="activity-section section-anchor py-20 md:py-28">
+    <section id="activity" tabIndex={-1} aria-labelledby="activity-title" className="activity-section section-anchor py-20 md:py-28">
       <div className="site-container">
         <p className="eyebrow">//04 ACTIVITY</p>
         <h2 id="activity-title" className="heading-xl mt-3">A year of building.</h2>

@@ -2,7 +2,7 @@ import { projects } from '../config/projects.js';
 
 export default function WorkSection() {
   return (
-    <section id="work" aria-labelledby="work-title" className="section-shell section-anchor py-20 md:py-28">
+    <section id="work" tabIndex={-1} aria-labelledby="work-title" className="section-shell section-anchor py-20 md:py-28">
       <div className="site-container">
         <p className="eyebrow">//01 SELECTED WORK</p>
         <h2 id="work-title" className="heading-xl mt-3">A project built for community.</h2>

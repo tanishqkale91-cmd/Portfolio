@@ -19,7 +19,8 @@ export default function Hero({ loaderDone = true }) {
   return (
     <section
       id="top"
-      className="hero-section"
+      tabIndex={-1}
+      className="hero-section section-anchor"
       aria-labelledby="hero-title"
     >
       {!reducedMotion && webglSupported && !lowPower ? (

@@ -24,6 +24,25 @@
           "left": 744
         }
       ],
+      "contactLeft": 48,
+      "footerLeft": 48,
+      "rows": [
+        {
+          "label": "EMAIL",
+          "left": 48,
+          "right": 1392
+        },
+        {
+          "label": "GITHUB",
+          "left": 48,
+          "right": 1392
+        },
+        {
+          "label": "LEETCODE",
+          "left": 48,
+          "right": 1392
+        }
+      ],
       "scrollWidth": 1440,
       "innerWidth": 1440
     },
@@ -49,6 +68,25 @@
         {
           "name": "Deployment",
           "left": 744
+        }
+      ],
+      "contactLeft": 48,
+      "footerLeft": 48,
+      "rows": [
+        {
+          "label": "EMAIL",
+          "left": 48,
+          "right": 1392
+        },
+        {
+          "label": "GITHUB",
+          "left": 48,
+          "right": 1392
+        },
+        {
+          "label": "LEETCODE",
+          "left": 48,
+          "right": 1392
         }
       ],
       "scrollWidth": 1440,
@@ -78,6 +116,25 @@
           "left": 400
         }
       ],
+      "contactLeft": 25.71875,
+      "footerLeft": 25.71875,
+      "rows": [
+        {
+          "label": "EMAIL",
+          "left": 25.71875,
+          "right": 742.28125
+        },
+        {
+          "label": "GITHUB",
+          "left": 25.71875,
+          "right": 742.28125
+        },
+        {
+          "label": "LEETCODE",
+          "left": 25.71875,
+          "right": 742.28125
+        }
+      ],
       "scrollWidth": 768,
       "innerWidth": 768
     },
@@ -105,11 +162,32 @@
           "left": 20
         }
       ],
+      "contactLeft": 20,
+      "footerLeft": 20,
+      "rows": [
+        {
+          "label": "EMAIL",
+          "left": 20,
+          "right": 370
+        },
+        {
+          "label": "GITHUB",
+          "left": 20,
+          "right": 370
+        },
+        {
+          "label": "LEETCODE",
+          "left": 20,
+          "right": 370
+        }
+      ],
       "scrollWidth": 390,
       "innerWidth": 390
     }
   ],
   "checks": {
+    "mailtoLinks": 5,
+    "normalNavigation": "footer navigation, header anchors, and Back to top landed, updated hash, and focused target",
     "reducedMotion": {
       "stackAnimation": "none",
       "pressedKeys": 0,
@@ -117,8 +195,14 @@
       "marqueeDuration": "0s",
       "staticGrid": true
     },
+    "reducedMotionNavigation": "footer navigation, header anchors, and Back to top passed",
+    "webglOffNavigation": "footer navigation, header anchors, and Back to top passed",
     "webglDisabledFallbackClusters": 4,
     "abortedSourceStates": "GitHub and LeetCode skeletons appeared, then both error states appeared"
   },
-  "errors": []
+  "errors": [
+    "768x1024: Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+    "768x1024: Access to fetch at 'https://leetcode-stats-api.herokuapp.com/Tann_ishq' from origin 'http://127.0.0.1:4179' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+    "768x1024: Failed to load resource: net::ERR_FAILED"
+  ]
 }

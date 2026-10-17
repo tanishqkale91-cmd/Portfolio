@@ -48,7 +48,7 @@ export default function StackSection() {
   }, [flat]);
   const items = useMemo(() => STACK_GROUPS.flatMap((group) => group.items), []);
   return (
-    <section id="stack" aria-labelledby="stack-title" className="stack-section section-anchor py-20 md:py-28">
+    <section id="stack" tabIndex={-1} aria-labelledby="stack-title" className="stack-section section-anchor py-20 md:py-28">
       <div className="site-container stack-live">
         <p className="eyebrow">//03 STACK</p>
         <h2 id="stack-title" className="heading-xl mt-3">Tools I work with.</h2>

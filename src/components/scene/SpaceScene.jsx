@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Float } from '@react-three/drei';
 import * as THREE from 'three';
 import gsap from 'gsap';
@@ -57,11 +57,31 @@ function Debris() {
 
 function World({ rig, pointer }) {
   const root = useRef();
+  const build = useRef();
+  const contactKey = useRef();
+  const { camera } = useThree();
   useFrame((_, delta) => {
     if (!root.current) return;
+    const progress = rig.current.progress || 0;
+    const section = Math.min(5, Math.floor(progress));
     root.current.position.x = THREE.MathUtils.damp(root.current.position.x, rig.current.x + pointer.current.x * 0.25, 3, delta);
     root.current.position.y = THREE.MathUtils.damp(root.current.position.y, rig.current.y + pointer.current.y * 0.16, 3, delta);
     root.current.position.z = THREE.MathUtils.damp(root.current.position.z, rig.current.z, 3, delta);
+    const cameraZ = [9, 8.5, 7.8, 8.2, 9, 8.1][section];
+    camera.position.x = THREE.MathUtils.damp(camera.position.x, pointer.current.x * 0.12, 2, delta);
+    camera.position.y = THREE.MathUtils.damp(camera.position.y, -progress * 0.05 + pointer.current.y * 0.08, 2, delta);
+    camera.position.z = THREE.MathUtils.damp(camera.position.z, cameraZ, 2, delta);
+    camera.lookAt(0, 0, -1.5);
+    if (build.current) {
+      const visibility = section === 1 ? 1 : section === 2 ? 0.18 : 0;
+      build.current.scale.setScalar(THREE.MathUtils.damp(build.current.scale.x, visibility || 0.001, 2.4, delta));
+      build.current.rotation.y = THREE.MathUtils.damp(build.current.rotation.y, pointer.current.x * 0.06 + progress * 0.05, 2, delta);
+    }
+    if (contactKey.current) {
+      const visibility = section === 5 ? 1 : 0;
+      contactKey.current.scale.setScalar(THREE.MathUtils.damp(contactKey.current.scale.x, visibility || 0.001, 2, delta));
+      contactKey.current.rotation.y = THREE.MathUtils.damp(contactKey.current.rotation.y, pointer.current.x * 0.045 + Math.sin(progress * 0.2) * 0.025, 2, delta);
+    }
   });
   return <group ref={root}>
     <ambientLight intensity={0.8} />
@@ -74,6 +94,16 @@ function World({ rig, pointer }) {
       </group>
     </Float>
     <Debris />
+    <group ref={build} position={[-5.2, 0, -2.4]} scale={0.001}>
+      {[0, 1, 2, 3].map((layer) => <mesh key={layer} position={[layer * 0.05, layer * 0.18, -layer * 0.14]} rotation={[0.08, 0.18, 0.02]}>
+        <boxGeometry args={[1.7 - layer * 0.1, 0.13, 1.15 - layer * 0.08]} />
+        <meshStandardMaterial color={themeColor('--debris')} roughness={0.85} transparent opacity={0.62} />
+      </mesh>)}
+    </group>
+    <group ref={contactKey} position={[4.1, -1.7, -2.6]} rotation={[0.08, -0.25, -0.12]} scale={0.001}>
+      <mesh><boxGeometry args={[1.25, 0.34, 1.05]} /><meshStandardMaterial color="#eab800" roughness={0.7} /></mesh>
+      <mesh position={[0, 0.22, 0]}><boxGeometry args={[1.13, 0.18, 0.94]} /><meshStandardMaterial color="#ffe446" roughness={0.55} /></mesh>
+    </group>
   </group>;
 }
 
@@ -93,6 +123,7 @@ export default function SpaceScene() {
           if (!element) return;
           ScrollTrigger.create({ trigger: element, start: 'top bottom', end: 'bottom top', onUpdate: (self) => {
             const progress = index + self.progress;
+            rig.current.progress = progress;
             rig.current.x = Math.sin(progress * 1.1) * 1.8;
             rig.current.y = -progress * 0.32 + Math.cos(progress * 0.7) * 0.3;
             rig.current.z = -progress * 1.35;

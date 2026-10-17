@@ -1,5 +1,5 @@
 /** Site-wide personal settings and external endpoints. */
-export const CONTACT_EMAIL = 'hello@example.com';
+export const CONTACT_EMAIL = 'tanishqkale91@gmail.com';
 export const GITHUB_URL = 'https://github.com/tanishqkale91-cmd';
 export const GITHUB_HANDLE = 'tanishqkale91-cmd';
 export const CONTRIBUTIONS_API_URL = `https://github-contributions-api.jogruber.de/v4/${GITHUB_HANDLE}?y=last`;
@@ -10,7 +10,6 @@ export const LEETCODE_GRAPHQL_API_URL = 'https://leetcode.com/graphql';
 export const LEETCODE_COMMUNITY_API_URL = `https://leetcode-stats-api.herokuapp.com/${LEETCODE_USERNAME}`;
 export const SITE_NAME = 'Tanishq Kale';
 export const WORDMARK = 'tanishq';
-export const ATTRIBUTION = 'curated by ui.debbie';
 export const DESIGN_WIDTH = 1440;
 export const NAV_LINKS = [
   { label: 'Work', href: '#work' },

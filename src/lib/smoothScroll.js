@@ -47,11 +47,14 @@ export function stopSmoothScroll() {
 /** Scrolls an anchor target into view, below the sticky header. */
 export function scrollToTarget(target, { smooth = true, offset = 0 } = {}) {
   if (!target) return;
+  const element = typeof target === 'string' ? document.querySelector(target) : target;
+  if (!element) return;
+  const top = element.getBoundingClientRect().top + window.scrollY + offset;
   if (lenis) {
-    lenis.scrollTo(target, { offset, duration: 1 });
+    lenis.scrollTo(top, { duration: smooth ? 1 : 0 });
     return;
   }
-  target.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' });
+  window.scrollTo({ top, behavior: smooth ? 'smooth' : 'auto' });
 }
 
 /** Freezes page scrolling while a modal dialog is open, and restores it after. */

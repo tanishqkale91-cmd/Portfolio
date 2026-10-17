@@ -75,8 +75,10 @@ export default function App() {
       if (target.id === 'main') return;
 
       event.preventDefault();
-      scrollToTarget(target, { smooth: !reducedMotion });
-      history.replaceState(null, '', href);
+      const headerHeight = Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--header-h')) || 64;
+      scrollToTarget(target, { smooth: !reducedMotion, offset: -(headerHeight + 24) });
+      history.pushState(null, '', href);
+      target.focus({ preventScroll: true });
     };
 
     document.addEventListener('click', handleClick);

@@ -8,6 +8,7 @@ const sizes = [{ width: 1440, height: 810 }, { width: 1440, height: 1002 }, { wi
 const errors = [];
 const output = [];
 const checks = {};
+const contactEmail = 'tanishqkale91@gmail.com';
 await mkdir('verify', { recursive: true });
 const server = spawn('npm', ['run', 'dev', '--', '--host', '127.0.0.1', '--port', '4179', '--strictPort'], { stdio: 'ignore' });
 let browser;
@@ -32,10 +33,16 @@ try {
       const grid = document.querySelector('#stack .stack-dom-overlay').getBoundingClientRect();
       const gap = parseFloat(getComputedStyle(document.querySelector('#stack .stack-dom-overlay')).columnGap);
       const clusters = [...document.querySelectorAll('#stack .stack-cluster')].map((node) => ({ name: node.querySelector('.stack-cluster-label').textContent, left: node.getBoundingClientRect().left }));
-      return { headerLeft: wordmark.left, gridLeft: grid.left, gridWidth: grid.width, gap, clusters, scrollWidth: document.documentElement.scrollWidth, innerWidth };
+      const contact = document.querySelector('.contact-channels').getBoundingClientRect();
+      const footer = document.querySelector('.footer-grid').getBoundingClientRect();
+      const rows = [...document.querySelectorAll('.contact-channel')].map((node) => ({ label: node.querySelector('.contact-channel__label').textContent, left: node.getBoundingClientRect().left, right: node.getBoundingClientRect().right }));
+      return { headerLeft: wordmark.left, gridLeft: grid.left, gridWidth: grid.width, gap, clusters, contactLeft: contact.left, footerLeft: footer.left, rows, scrollWidth: document.documentElement.scrollWidth, innerWidth };
     });
     const tolerance = 2;
     if (measure.scrollWidth > viewport.width) errors.push(`${sizesLabel}: horizontal overflow ${measure.scrollWidth}px`);
+    if (Math.abs(measure.contactLeft - measure.headerLeft) > tolerance) errors.push(`${sizesLabel}: contact rows do not align with header gutter`);
+    if (Math.abs(measure.footerLeft - measure.headerLeft) > tolerance) errors.push(`${sizesLabel}: footer columns do not align with header gutter`);
+    for (const row of measure.rows) if (row.left < 0 || row.right > viewport.width) errors.push(`${sizesLabel}: ${row.label} channel row overflows viewport`);
     for (const cluster of measure.clusters) if (Math.abs(cluster.left - measure.headerLeft) > tolerance && viewport.width < 767) errors.push(`${sizesLabel}: ${cluster.name} left ${cluster.left}px differs from header ${measure.headerLeft}px`);
     if (viewport.width >= 767) {
       for (const cluster of measure.clusters) {
@@ -46,6 +53,8 @@ try {
     }
     output.push({ viewport: sizesLabel, ...measure });
     await page.screenshot({ path: `verify/${viewport.width}x${viewport.height}-full.png`, fullPage: true, animations: 'disabled' });
+    await page.locator('#contact').screenshot({ path: `verify/${viewport.width}x${viewport.height}-contact.png`, animations: 'disabled' });
+    await page.locator('.site-footer').screenshot({ path: `verify/${viewport.width}x${viewport.height}-footer.png`, animations: 'disabled' });
     await page.addStyleTag({ content: '*,*::before,*::after{animation:none!important;transition:none!important;}' });
     for (const [name, selector] of [['stack', '#stack'], ['activity', '#activity']]) {
       await page.evaluate((targetSelector) => {
@@ -58,6 +67,50 @@ try {
     await page.close();
   }
 
+  async function assertNavigation(page, mode) {
+    const targets = await page.locator('footer nav[aria-label="Footer navigation"] a[href^="#"]').evaluateAll((links) => links.map((link) => ({ href: link.getAttribute('href'), label: link.textContent.trim() })));
+    for (const { href, label } of targets) {
+      await page.locator(`footer nav[aria-label="Footer navigation"] a[href="${href}"]`).click();
+      await page.waitForTimeout(mode === 'reduced-motion' ? 100 : 1250);
+      const result = await page.evaluate((hash) => {
+        const target = document.getElementById(hash.slice(1));
+        return { hash: location.hash, focused: document.activeElement === target, top: target.getBoundingClientRect().top, header: document.querySelector('.site-header').getBoundingClientRect().bottom };
+      }, href);
+      const expectedTop = href === '#top' ? result.header : result.header + 24;
+      if (result.hash !== href || !result.focused || Math.abs(result.top - expectedTop) > 4) errors.push(`${mode}: footer navigation ${label} failed: ${JSON.stringify(result)}`);
+    }
+    await page.locator('.footer-back-top').click();
+    await page.waitForTimeout(mode === 'reduced-motion' ? 100 : 1250);
+    const backToTop = await page.evaluate(() => ({ hash: location.hash, focused: document.activeElement === document.getElementById('top'), top: document.getElementById('top').getBoundingClientRect().top, header: document.querySelector('.site-header').getBoundingClientRect().bottom }));
+    if (backToTop.hash !== '#top' || !backToTop.focused || Math.abs(backToTop.top - backToTop.header) > 4) errors.push(`${mode}: Back to top failed: ${JSON.stringify(backToTop)}`);
+    const headerTargets = await page.locator('header a[href^="#"]').evaluateAll((links) => links.map((link) => link.getAttribute('href')));
+    for (const href of [...new Set(headerTargets)]) {
+      await page.locator(`header a[href="${href}"]`).first().click();
+      await page.waitForTimeout(mode === 'reduced-motion' ? 100 : 1250);
+      const result = await page.evaluate((hash) => {
+        const target = document.getElementById(hash.slice(1));
+        return { hash: location.hash, focused: document.activeElement === target, top: target.getBoundingClientRect().top, header: document.querySelector('.site-header').getBoundingClientRect().bottom };
+      }, href);
+      const expectedTop = href === '#top' ? result.header : result.header + 24;
+      if (result.hash !== href || !result.focused || Math.abs(result.top - expectedTop) > 4) errors.push(`${mode}: header navigation ${href} failed: ${JSON.stringify(result)}`);
+    }
+  }
+
+  const normalNavigation = await browser.newPage({ viewport: sizes[0], reducedMotion: 'no-preference' });
+  await normalNavigation.addInitScript(() => sessionStorage.setItem('tanishq-portfolio-loaded', '1'));
+  await normalNavigation.goto(origin, { waitUntil: 'domcontentloaded' });
+  await normalNavigation.waitForSelector('#contact .contact-channel');
+  const mailto = await normalNavigation.locator('a[href^="mailto:"]').evaluateAll((links) => links.map((link) => link.getAttribute('href')));
+  if (!mailto.length || mailto.some((href) => href !== `mailto:${contactEmail}`)) errors.push(`mailto links did not all use the configured address: ${JSON.stringify(mailto)}`);
+  await normalNavigation.locator('[data-key-id="p"]').click();
+  const dialogMailto = await normalNavigation.locator('dialog a[href^="mailto:"]').getAttribute('href');
+  if (dialogMailto !== `mailto:${contactEmail}`) errors.push(`keyboard dialog mailto was ${dialogMailto}`);
+  await normalNavigation.locator('dialog .site-dialog__close').click();
+  await assertNavigation(normalNavigation, 'normal');
+  checks.mailtoLinks = mailto.length;
+  checks.normalNavigation = 'footer navigation, header anchors, and Back to top landed, updated hash, and focused target';
+  await normalNavigation.close();
+
   const reduced = await browser.newPage({ viewport: sizes[0], reducedMotion: 'reduce' });
   reduced.on('console', (message) => { if (message.type() === 'error') errors.push(`reduced: ${message.text()}`); });
   reduced.on('pageerror', (error) => errors.push(`reduced: ${error.message}`));
@@ -68,6 +121,8 @@ try {
   const motion = await reduced.evaluate(() => ({ stackAnimation: getComputedStyle(document.querySelector('.stack-tag')).animationName, pressedKeys: document.querySelectorAll('.kb-key.is-pressed').length, marqueeAnimation: getComputedStyle(document.querySelector('.marquee__track')).animationName, marqueeDuration: getComputedStyle(document.querySelector('.marquee__track')).animationDuration, staticGrid: document.querySelector('.stack-grid.is-static') !== null }));
   if (!motion.staticGrid || motion.stackAnimation !== 'none' || motion.pressedKeys || motion.marqueeAnimation !== 'none') errors.push(`reduced motion assertion failed: ${JSON.stringify(motion)}`);
   checks.reducedMotion = motion;
+  await assertNavigation(reduced, 'reduced-motion');
+  checks.reducedMotionNavigation = 'footer navigation, header anchors, and Back to top passed';
   await reduced.close();
 
   const noWebglBrowser = await chromium.launch({ headless: true, args: ['--disable-gpu', '--disable-webgl'] });
@@ -79,6 +134,8 @@ try {
   await noWebgl.waitForSelector('#stack .stack-grid.is-static');
   const fallback = await noWebgl.locator('#stack .stack-cluster').count();
   if (fallback !== 4) errors.push(`webgl-off: expected 4 aligned fallback clusters, found ${fallback}`);
+  await assertNavigation(noWebgl, 'webgl-off');
+  checks.webglOffNavigation = 'footer navigation, header anchors, and Back to top passed';
   await noWebgl.close();
   await noWebglBrowser.close();
   checks.webglDisabledFallbackClusters = fallback;
