@@ -15,6 +15,7 @@ export const DESIGN_WIDTH = 1440;
 export const NAV_LINKS = [
   { label: 'Work', href: '#work' },
   { label: 'About', href: '#about' },
+  { label: 'Experience', href: '#experience' },
   { label: 'Stack', href: '#stack' },
   { label: "Let's talk", href: CONTACT_MAILTO_SUBJECT },
 ];

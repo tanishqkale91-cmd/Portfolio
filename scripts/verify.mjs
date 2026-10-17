@@ -58,6 +58,10 @@ try {
     }
     output.push({ viewport: sizesLabel, ...measure });
     await page.screenshot({ path: `verify/${viewport.width}x${viewport.height}-full.png`, fullPage: true, animations: 'disabled' });
+    await page.locator('#experience').scrollIntoViewIfNeeded();
+    await page.waitForFunction(() => [...document.querySelectorAll('#experience .experience-row')].length > 0 && [...document.querySelectorAll('#experience .experience-row')].every((row) => row.classList.contains('is-visible')));
+    await page.waitForTimeout(500);
+    await page.locator('#experience').screenshot({ path: `verify/${viewport.width}x${viewport.height}-experience.png`, animations: 'disabled' });
     await page.locator('#contact').screenshot({ path: `verify/${viewport.width}x${viewport.height}-contact.png`, animations: 'disabled' });
     await page.locator('.site-footer').screenshot({ path: `verify/${viewport.width}x${viewport.height}-footer.png`, animations: 'disabled' });
     await page.addStyleTag({ content: '*,*::before,*::after{animation:none!important;transition:none!important;}' });
@@ -101,6 +105,30 @@ try {
     }
   }
 
+  async function assertContactKeyNavigation(page, mode) {
+    const interactions = [
+      ['o-final', 'click'],
+      ['enter', 'click'],
+      ['o-final', 'Enter'],
+      ['o-final', 'Space'],
+      ['enter', 'Enter'],
+      ['enter', 'Space'],
+    ];
+    for (const [key, activation] of interactions) {
+      const locator = page.locator(`[data-key-id="${key}"]`);
+      if (activation === 'click') await locator.click();
+      else { await locator.focus(); await locator.press(activation); }
+      await page.waitForFunction(() => {
+        const target = document.getElementById('contact');
+        const header = document.querySelector('.site-header');
+        return location.hash === '#contact' && document.activeElement === target && Math.abs(target.getBoundingClientRect().top - header.getBoundingClientRect().bottom - 24) <= 5;
+      }, undefined, { timeout: 5000 }).catch(() => null);
+      const result = await page.evaluate(() => ({ href: location.href, hash: location.hash, active: document.activeElement?.id, targetTop: document.getElementById('contact').getBoundingClientRect().top, headerBottom: document.querySelector('.site-header').getBoundingClientRect().bottom }));
+      if (!result.href.startsWith(origin) || result.hash !== '#contact' || result.active !== 'contact' || Math.abs(result.targetTop - result.headerBottom - 24) > 5) errors.push(`${mode}: ${key} ${activation} did not land on contact: ${JSON.stringify(result)}`);
+    }
+    checks[`${mode}KeyboardContactNavigation`] = 'final O and Enter mouse activation, final O Enter, and Enter Space activation reached #contact with focus below the sticky header';
+  }
+
   const normalNavigation = await browser.newPage({ viewport: sizes[0], reducedMotion: 'no-preference' });
   await normalNavigation.addInitScript(() => sessionStorage.setItem('tanishq-portfolio-loaded', '1'));
   await normalNavigation.goto(origin, { waitUntil: 'domcontentloaded' });
@@ -109,10 +137,18 @@ try {
   const headerEmail = await normalNavigation.locator('header a[href^="mailto:"]').getAttribute('href');
   const footerEmail = await normalNavigation.locator('footer nav[aria-label="Footer channels"] a[href^="mailto:"]').getAttribute('href');
   const contactEmailHref = await normalNavigation.locator('[data-contact-email]').getAttribute('href');
-  const enterEmail = await normalNavigation.locator('[data-key-id="enter"]').getAttribute('href');
-  const finalOEmail = await normalNavigation.locator('[data-key-id="o-final"]').getAttribute('href');
-  if (headerEmail !== talkMailto || footerEmail !== contactMailto || contactEmailHref !== contactMailto || enterEmail !== contactMailto || finalOEmail !== contactMailto) errors.push(`email entry points mismatch: ${JSON.stringify({ headerEmail, footerEmail, contactEmailHref, enterEmail, finalOEmail })}`);
-  if (mailto.length !== 5 || mailto.filter((href) => href === contactMailto).length !== 4 || !mailto.includes(talkMailto)) errors.push(`unexpected mailto anchors: ${JSON.stringify(mailto)}`);
+  const enterTarget = await normalNavigation.locator('[data-key-id="enter"]').getAttribute('href');
+  const finalOTarget = await normalNavigation.locator('[data-key-id="o-final"]').getAttribute('href');
+  const enterName = await normalNavigation.locator('[data-key-id="enter"]').getAttribute('aria-label');
+  const finalOName = await normalNavigation.locator('[data-key-id="o-final"]').getAttribute('aria-label');
+  if (headerEmail !== talkMailto || footerEmail !== contactMailto || contactEmailHref !== contactMailto || enterTarget !== '#contact' || finalOTarget !== '#contact' || enterName !== "Let's talk" || finalOName !== 'Contact Me') errors.push(`contact entry points mismatch: ${JSON.stringify({ headerEmail, footerEmail, contactEmailHref, enterTarget, finalOTarget, enterName, finalOName })}`);
+  if (mailto.length !== 3 || mailto.filter((href) => href === contactMailto).length !== 2 || !mailto.includes(talkMailto)) errors.push(`unexpected mailto anchors: ${JSON.stringify(mailto)}`);
+  const experienceRoleCount = await normalNavigation.locator('#experience .experience-row').count();
+  const experienceLog = await normalNavigation.locator('#experience .experience-log__header').innerText();
+  if (experienceRoleCount !== 2 || !experienceLog.includes('RECORDS: 02')) errors.push(`experience data was incomplete: ${JSON.stringify({ experienceRoleCount, experienceLog })}`);
+  const gfgImage = normalNavigation.locator('#experience img[alt="GeeksforGeeks Campus Body, RBU"]');
+  if (await gfgImage.count() !== 1 || !(await gfgImage.evaluate((image) => image.complete && image.naturalWidth > 0))) errors.push('supplied GeeksforGeeks icon did not load');
+  if (await normalNavigation.locator('#experience .experience-icon [role="img"][aria-label="Mechhelp"]').count() !== 1) errors.push('Mechhelp monogram fallback was not rendered');
   await normalNavigation.evaluate(() => {
     window.__mailtoChecks = [];
     window.addEventListener('click', (event) => {
@@ -128,13 +164,17 @@ try {
   await talkLink.press('Space');
   await normalNavigation.locator('[data-contact-email]').click();
   await normalNavigation.locator('footer nav[aria-label="Footer channels"] a[href^="mailto:"]').click();
-  await normalNavigation.locator('[data-key-id="enter"]').click();
-  await normalNavigation.locator('[data-key-id="o-final"]').click();
   const mailtoClicks = await normalNavigation.evaluate(() => window.__mailtoChecks);
-  if (mailtoClicks.length !== 7 || mailtoClicks.some((click) => click.prevented)) errors.push(`mailto clicks were prevented or not observed: ${JSON.stringify(mailtoClicks)}`);
+  if (mailtoClicks.length !== 5 || mailtoClicks.some((click) => click.prevented)) errors.push(`mailto clicks were prevented or not observed: ${JSON.stringify(mailtoClicks)}`);
+  await assertContactKeyNavigation(normalNavigation, 'normal');
   await normalNavigation.locator('[data-key-id="p"]').click();
-  const dialogMailto = await normalNavigation.locator('dialog a[href^="mailto:"]').getAttribute('href');
-  if (dialogMailto !== `mailto:${contactEmail}`) errors.push(`keyboard dialog mailto was ${dialogMailto}`);
+  const dialogContact = normalNavigation.locator('[data-dialog-contact-link]');
+  if (await dialogContact.getAttribute('href') !== '#contact') errors.push('dialog contact link did not point to #contact');
+  await dialogContact.click();
+  await normalNavigation.waitForFunction(() => location.hash === '#contact' && document.activeElement === document.getElementById('contact'));
+  const dialogFocus = await normalNavigation.evaluate(() => document.activeElement?.id);
+  if (dialogFocus !== 'contact') errors.push(`dialog contact action left focus on ${dialogFocus}`);
+  await normalNavigation.locator('[data-key-id="p"]').click();
   await normalNavigation.locator('dialog .site-dialog__close').click();
   await normalNavigation.context().grantPermissions(['clipboard-read', 'clipboard-write']);
   await normalNavigation.locator('.contact-copy-button').click();
@@ -150,7 +190,7 @@ try {
   checks.sampledFrameRate = `${frameRate} fps in headless Chromium`;
   await assertNavigation(normalNavigation, 'normal');
   checks.mailtoLinks = mailto.length;
-  checks.mailtoClicks = 'header mouse, header Enter and Space, footer, contact row, Enter key, and final O were not prevented';
+  checks.mailtoClicks = 'header mouse, header Enter and Space, footer, and contact row were not prevented';
   checks.normalNavigation = 'footer navigation, header anchors, and Back to top landed, updated hash, and focused target';
   await normalNavigation.close();
 
@@ -159,6 +199,8 @@ try {
     await reducedShots.addInitScript(() => sessionStorage.setItem('tanishq-portfolio-loaded', '1'));
     await reducedShots.goto(`${origin}/?reduced=1`, { waitUntil: 'domcontentloaded' });
     await reducedShots.waitForSelector('#contact-stage-target .contact-stage__fallback');
+    await reducedShots.locator('#experience').scrollIntoViewIfNeeded();
+    await reducedShots.waitForFunction(() => [...document.querySelectorAll('#experience .experience-row')].length > 0 && [...document.querySelectorAll('#experience .experience-row')].every((row) => row.classList.contains('is-visible')));
     await reducedShots.locator('#contact').screenshot({ path: `verify/${viewport.width}x${viewport.height}-contact-reduced.png`, animations: 'disabled' });
     await reducedShots.locator('#footer').screenshot({ path: `verify/${viewport.width}x${viewport.height}-footer-reduced.png`, animations: 'disabled' });
     await reducedShots.close();
@@ -168,11 +210,13 @@ try {
   reduced.on('pageerror', (error) => errors.push(`reduced: ${error.message}`));
   await reduced.addInitScript(() => sessionStorage.setItem('tanishq-portfolio-loaded', '1'));
   await reduced.goto(`${origin}/?reduced=1`, { waitUntil: 'domcontentloaded' });
+  await reduced.locator('#experience').screenshot({ path: `verify/${sizes[0].width}x${sizes[0].height}-experience-reduced.png`, animations: 'disabled' });
   await reduced.waitForSelector('#stack .stack-cluster');
   await reduced.waitForTimeout(500);
   const motion = await reduced.evaluate(() => ({ stackAnimation: getComputedStyle(document.querySelector('.stack-tag')).animationName, pressedKeys: document.querySelectorAll('.kb-key.is-pressed').length, marqueeAnimation: getComputedStyle(document.querySelector('.marquee__track')).animationName, marqueeDuration: getComputedStyle(document.querySelector('.marquee__track')).animationDuration, staticGrid: document.querySelector('.stack-grid.is-static') !== null }));
   if (!motion.staticGrid || motion.stackAnimation !== 'none' || motion.pressedKeys || motion.marqueeAnimation !== 'none') errors.push(`reduced motion assertion failed: ${JSON.stringify(motion)}`);
   checks.reducedMotion = motion;
+  await assertContactKeyNavigation(reduced, 'reduced-motion');
   await assertNavigation(reduced, 'reduced-motion');
   checks.reducedMotionNavigation = 'footer navigation, header anchors, and Back to top passed';
   await reduced.close();
@@ -183,6 +227,9 @@ try {
     await noWebglShot.addInitScript(() => sessionStorage.setItem('tanishq-portfolio-loaded', '1'));
     await noWebglShot.goto(origin, { waitUntil: 'domcontentloaded' });
     await noWebglShot.waitForSelector('#contact-stage-target .contact-stage__fallback');
+    await noWebglShot.locator('#experience').scrollIntoViewIfNeeded();
+    await noWebglShot.waitForFunction(() => [...document.querySelectorAll('#experience .experience-row')].length > 0 && [...document.querySelectorAll('#experience .experience-row')].every((row) => row.classList.contains('is-visible')));
+    await noWebglShot.locator('#experience').screenshot({ path: `verify/${viewport.width}x${viewport.height}-experience-webgl-off.png`, animations: 'disabled' });
     await noWebglShot.locator('#contact').screenshot({ path: `verify/${viewport.width}x${viewport.height}-contact-webgl-off.png`, animations: 'disabled' });
     await noWebglShot.locator('#footer').screenshot({ path: `verify/${viewport.width}x${viewport.height}-footer-webgl-off.png`, animations: 'disabled' });
     await noWebglShot.close();
@@ -192,9 +239,13 @@ try {
   noWebgl.on('pageerror', (error) => errors.push(`webgl-off: ${error.message}`));
   await noWebgl.addInitScript(() => sessionStorage.setItem('tanishq-portfolio-loaded', '1'));
   await noWebgl.goto(origin, { waitUntil: 'domcontentloaded' });
+  await noWebgl.locator('#experience').scrollIntoViewIfNeeded();
+  await noWebgl.waitForFunction(() => [...document.querySelectorAll('#experience .experience-row')].length > 0 && [...document.querySelectorAll('#experience .experience-row')].every((row) => row.classList.contains('is-visible')));
+  await noWebgl.locator('#experience').screenshot({ path: `verify/${sizes[2].width}x${sizes[2].height}-experience-webgl-off.png`, animations: 'disabled' });
   await noWebgl.waitForSelector('#contact-stage-target .contact-stage__fallback');
   const fallback = await noWebgl.locator('#stack .stack-cluster').count();
   if (fallback !== 4) errors.push(`webgl-off: expected 4 aligned fallback clusters, found ${fallback}`);
+  await assertContactKeyNavigation(noWebgl, 'webgl-off');
   await assertNavigation(noWebgl, 'webgl-off');
   checks.webglOffNavigation = 'footer navigation, header anchors, and Back to top passed';
   await noWebgl.close();

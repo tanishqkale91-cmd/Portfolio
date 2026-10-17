@@ -4,13 +4,14 @@ import Header from './components/Header.jsx';
 import Hero from './components/Hero.jsx';
 import WorkSection from './components/WorkSection.jsx';
 import AboutSection from './components/AboutSection.jsx';
+import ExperienceSection from './components/ExperienceSection.jsx';
 import StackSection from './components/StackSection.jsx';
 import ActivitySection from './components/ActivitySection.jsx';
 import ContactSection from './components/ContactSection.jsx';
 import Footer from './components/Footer.jsx';
 import usePrefersReducedMotion from './hooks/usePrefersReducedMotion.js';
 import { useIsSmallLowPower, useWebGLSupported } from './hooks/useCapabilities.js';
-import { scrollToTarget, startSmoothScroll } from './lib/smoothScroll.js';
+import { refreshScrollTriggers, scrollToTarget, startSmoothScroll } from './lib/smoothScroll.js';
 import Loader from './components/Loader.jsx';
 
 // The 3D section is code-split: never in the initial bundle.
@@ -75,8 +76,9 @@ export default function App() {
       if (target.id === 'main') return;
 
       event.preventDefault();
+      refreshScrollTriggers();
       const headerHeight = Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--header-h')) || 64;
-      scrollToTarget(target, { smooth: !reducedMotion, offset: -(headerHeight + 24) });
+      scrollToTarget(href, { smooth: !reducedMotion, offset: -(headerHeight + 24) });
       history.pushState(null, '', href);
       target.focus({ preventScroll: true });
     };
@@ -105,6 +107,7 @@ export default function App() {
         <Hero loaderDone={introComplete} />
         <WorkSection />
         <AboutSection />
+        <ExperienceSection />
         <StackSection />
         <ActivitySection />
         <ContactSection sceneEnabled={!reducedMotion && webgl && !smallLowPower} />

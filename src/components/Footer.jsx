@@ -3,7 +3,7 @@ import { CONTACT_EMAIL, GITHUB_URL, LEETCODE_URL, WORDMARK } from '../config/sit
 
 const navigation = [
   ['Home', '#top'], ['Work', '#work'], ['About', '#about'],
-  ['Stack', '#stack'], ['Activity', '#activity'], ['Contact', '#contact'],
+  ['Experience', '#experience'], ['Stack', '#stack'], ['Activity', '#activity'], ['Contact', '#contact'],
 ];
 
 function formatTime() {

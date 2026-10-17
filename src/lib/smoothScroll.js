@@ -44,16 +44,42 @@ export function stopSmoothScroll() {
   }
 }
 
+/** Recalculates pin and trigger positions before a scripted in-page jump. */
+export function refreshScrollTriggers() {
+  ScrollTrigger.refresh();
+}
+
 /** Scrolls an anchor target into view, below the sticky header. */
 export function scrollToTarget(target, { smooth = true, offset = 0 } = {}) {
   if (!target) return;
   const element = typeof target === 'string' ? document.querySelector(target) : target;
   if (!element) return;
-  const top = element.getBoundingClientRect().top + window.scrollY + offset;
   if (lenis) {
-    lenis.scrollTo(top, { duration: smooth ? 1 : 0 });
+    const nativeScroll = window.scrollY;
+    if (Math.abs(lenis.animatedScroll - nativeScroll) > 1) {
+      lenis.scrollTo(nativeScroll, { immediate: true, force: true });
+    }
+    // Lenis subtracts both scroll-margin and root scroll-padding when resolving
+    // an element target. Compensate so the requested offset remains the final
+    // visual gap below the sticky header.
+    const targetStyle = getComputedStyle(element);
+    const rootStyle = getComputedStyle(document.documentElement);
+    const scrollMargin = Number.parseFloat(targetStyle.scrollMarginTop) || 0;
+    const scrollPadding = Number.parseFloat(rootStyle.scrollPaddingTop) || 0;
+    lenis.scrollTo(typeof target === 'string' ? target : element, {
+      offset: offset + scrollMargin + scrollPadding,
+      duration: smooth ? 1 : 0,
+      onComplete: () => {
+        const desiredTop = -offset;
+        const correction = element.getBoundingClientRect().top - desiredTop;
+        if (Math.abs(correction) > 1) {
+          lenis.scrollTo(window.scrollY + correction, { immediate: true, force: true });
+        }
+      },
+    });
     return;
   }
+  const top = element.getBoundingClientRect().top + window.scrollY + offset;
   window.scrollTo({ top, behavior: smooth ? 'smooth' : 'auto' });
 }
 

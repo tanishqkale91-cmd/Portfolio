@@ -15,7 +15,7 @@ export const KEY_SIZE = { width: 146, height: 161 };
  * x / y , position in composition pixels (w / h default to KEY_SIZE)
  * layer , stacking: 'top' row, 'lower' row (overlaps top), 'enter'
  * action, { kind: 'dialog', dialog } opens a native <dialog>
- *          { kind: 'mailto' } is a contact anchor
+ *          { kind: 'anchor', href } is an in-page contact anchor
  * name  , the accessible name of the key control
  */
 export const KEYS = [
@@ -129,7 +129,7 @@ export const KEYS = [
     name: 'Contact Me',
     face: '#d9f28f',
     base: '#7aa52d',
-    action: { kind: 'mailto' },
+    action: { kind: 'anchor', href: '#contact' },
   },
 
   // Tall Enter key spanning both rows (the final O overlaps its left part).
@@ -142,10 +142,10 @@ export const KEYS = [
     h: 300,
     letter: '',
     caption: "Let's talk",
-    name: "Let's Talk",
+    name: "Let's talk",
     face: '#ffe446',
     base: '#eab800',
-    action: { kind: 'mailto' },
+    action: { kind: 'anchor', href: '#contact' },
   },
 ];
 

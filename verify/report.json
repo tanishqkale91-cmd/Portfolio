@@ -25,22 +25,29 @@
         }
       ],
       "contactLeft": 48,
+      "stage": {
+        "left": 819.59375,
+        "top": 5299.5625,
+        "width": 572.40625,
+        "height": 480
+      },
       "footerLeft": 48,
+      "footerWordmarkWidth": 566.234375,
       "rows": [
         {
           "label": "EMAIL",
           "left": 48,
-          "right": 1392
+          "right": 747.59375
         },
         {
           "label": "GITHUB",
           "left": 48,
-          "right": 1392
+          "right": 747.59375
         },
         {
           "label": "LEETCODE",
           "left": 48,
-          "right": 1392
+          "right": 747.59375
         }
       ],
       "scrollWidth": 1440,
@@ -71,22 +78,29 @@
         }
       ],
       "contactLeft": 48,
+      "stage": {
+        "left": 819.59375,
+        "top": 5109.796875,
+        "width": 572.40625,
+        "height": 480
+      },
       "footerLeft": 48,
+      "footerWordmarkWidth": 566.234375,
       "rows": [
         {
           "label": "EMAIL",
           "left": 48,
-          "right": 1392
+          "right": 747.59375
         },
         {
           "label": "GITHUB",
           "left": 48,
-          "right": 1392
+          "right": 747.59375
         },
         {
           "label": "LEETCODE",
           "left": 48,
-          "right": 1392
+          "right": 747.59375
         }
       ],
       "scrollWidth": 1440,
@@ -117,22 +131,29 @@
         }
       ],
       "contactLeft": 25.71875,
+      "stage": {
+        "left": 437.09375,
+        "top": 5026.0625,
+        "width": 305.1875,
+        "height": 480
+      },
       "footerLeft": 25.71875,
+      "footerWordmarkWidth": 303.40625,
       "rows": [
         {
           "label": "EMAIL",
           "left": 25.71875,
-          "right": 742.28125
+          "right": 398.703125
         },
         {
           "label": "GITHUB",
           "left": 25.71875,
-          "right": 742.28125
+          "right": 398.703125
         },
         {
           "label": "LEETCODE",
           "left": 25.71875,
-          "right": 742.28125
+          "right": 398.703125
         }
       ],
       "scrollWidth": 768,
@@ -163,7 +184,14 @@
         }
       ],
       "contactLeft": 20,
+      "stage": {
+        "left": 20,
+        "top": 5012.84375,
+        "width": 350,
+        "height": 280
+      },
       "footerLeft": 20,
+      "footerWordmarkWidth": 192.25,
       "rows": [
         {
           "label": "EMAIL",
@@ -186,7 +214,11 @@
     }
   ],
   "checks": {
-    "mailtoLinks": 5,
+    "normalKeyboardContactNavigation": "final O and Enter mouse activation, final O Enter, and Enter Space activation reached #contact with focus below the sticky header",
+    "copyEmail": "clipboard contents and live announcement passed",
+    "sampledFrameRate": "8 fps in headless Chromium",
+    "mailtoLinks": 3,
+    "mailtoClicks": "header mouse, header Enter and Space, footer, and contact row were not prevented",
     "normalNavigation": "footer navigation, header anchors, and Back to top landed, updated hash, and focused target",
     "reducedMotion": {
       "stackAnimation": "none",
@@ -195,14 +227,16 @@
       "marqueeDuration": "0s",
       "staticGrid": true
     },
+    "reduced-motionKeyboardContactNavigation": "final O and Enter mouse activation, final O Enter, and Enter Space activation reached #contact with focus below the sticky header",
     "reducedMotionNavigation": "footer navigation, header anchors, and Back to top passed",
+    "webgl-offKeyboardContactNavigation": "final O and Enter mouse activation, final O Enter, and Enter Space activation reached #contact with focus below the sticky header",
     "webglOffNavigation": "footer navigation, header anchors, and Back to top passed",
     "webglDisabledFallbackClusters": 4,
     "abortedSourceStates": "GitHub and LeetCode skeletons appeared, then both error states appeared"
   },
   "errors": [
-    "768x1024: Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
-    "768x1024: Access to fetch at 'https://leetcode-stats-api.herokuapp.com/Tann_ishq' from origin 'http://127.0.0.1:4179' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
-    "768x1024: Failed to load resource: net::ERR_FAILED"
+    "1440x1002: Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+    "1440x1002: Access to fetch at 'https://leetcode-stats-api.herokuapp.com/Tann_ishq' from origin 'http://127.0.0.1:4179' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+    "1440x1002: Failed to load resource: net::ERR_FAILED"
   ]
 }

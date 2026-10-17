@@ -50,7 +50,7 @@ export default function StackSection() {
   return (
     <section id="stack" tabIndex={-1} aria-labelledby="stack-title" className="stack-section section-anchor py-20 md:py-28">
       <div className="site-container stack-live">
-        <p className="eyebrow">//03 STACK</p>
+        <p className="eyebrow">//04 STACK</p>
         <h2 id="stack-title" className="heading-xl mt-3">Tools I work with.</h2>
         <p className="lede mt-5 max-w-2xl">A growing collection of languages, tools, and platforms I use while learning and building.</p>
         <div className={`stack-stage stack-grid mt-12${flat ? ' is-static' : ` is-floating${stageVisible ? ' is-active' : ''}`}`} ref={stageRef} role="group" aria-label="Technology stack">

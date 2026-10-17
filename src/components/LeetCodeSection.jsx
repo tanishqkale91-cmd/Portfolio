@@ -76,7 +76,7 @@ export default function LeetCodeSection() {
   }, []);
   const weeks = useMemo(() => state.data ? makeWeeks(state.data.calendar) : [], [state.data]);
   return <section className="leetcode-section" aria-labelledby="leetcode-title">
-    <p className="eyebrow">//05 LEETCODE</p>
+    <p className="eyebrow">//06 LEETCODE</p>
     <h3 id="leetcode-title" className="heading-lg mt-3">Problem solving, over time.</h3>
     <p className="lede mt-4 max-w-2xl">Submission activity for <span className="font-mono text-ink">{LEETCODE_USERNAME}</span>.</p>
     {state.status === 'loading' && <div className="activity-scroll activity-skeleton leetcode-skeleton mt-6" role="status" aria-label="Loading LeetCode submission activity"><div className="activity-skeleton">{Array.from({ length: 371 }, (_, index) => <i key={index} />)}</div></div>}

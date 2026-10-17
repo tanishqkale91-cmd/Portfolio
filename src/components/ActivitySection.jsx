@@ -47,7 +47,7 @@ export default function ActivitySection() {
   return (
     <section id="activity" tabIndex={-1} aria-labelledby="activity-title" className="activity-section section-anchor py-20 md:py-28">
       <div className="site-container">
-        <p className="eyebrow">//04 ACTIVITY</p>
+        <p className="eyebrow">//05 ACTIVITY</p>
         <h2 id="activity-title" className="heading-xl mt-3">A year of building.</h2>
         <p className="lede mt-5 max-w-2xl">GitHub contributions from the past year.</p>
         {state.status === 'loading' && <div className="activity-scroll mt-8" aria-label="Loading GitHub contribution graph"><div className="activity-skeleton">{Array.from({ length: 371 }, (_, index) => <i key={index} />)}</div></div>}

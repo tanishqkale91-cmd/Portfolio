@@ -9,7 +9,7 @@ import { KEYS } from '../../config/keyboard.js';
 import { themeColor } from '../../lib/themeColor.js';
 
 gsap.registerPlugin(ScrollTrigger);
-const SECTIONS = ['top', 'work', 'about', 'stack', 'activity', 'contact', 'footer'];
+const SECTIONS = ['top', 'work', 'about', 'experience', 'stack', 'activity', 'contact', 'footer'];
 
 function makePoints(count, radius, seed = 1) {
   let value = seed;
@@ -23,7 +23,7 @@ function makePoints(count, radius, seed = 1) {
   return points;
 }
 
-function StarField() {
+function StarField({ rig }) {
   const ref = useRef();
   const positions = useMemo(() => makePoints(760, 35), []);
   const stars = useMemo(() => Array.from({ length: positions.length / 3 }, (_, index) => ({
@@ -37,18 +37,23 @@ function StarField() {
   }, [stars, dummy]);
   useFrame((_, delta) => {
     if (!ref.current) return;
+    const section = Math.floor(rig.current.progress || 0);
+    ref.current.count = section === 3 ? 420 : stars.length;
     ref.current.rotation.y += delta * 0.0015;
   });
   return <instancedMesh ref={ref} args={[null, null, stars.length]}><sphereGeometry args={[1, 5, 5]} /><meshBasicMaterial color={themeColor('--star')} transparent opacity={0.7} /></instancedMesh>;
 }
 
-function Debris() {
+function Debris({ rig }) {
   const ref = useRef();
   const dummy = useMemo(() => new THREE.Object3D(), []);
   const debris = useMemo(() => Array.from({ length: 34 }, (_, i) => ({
     x: Math.sin(i * 4.13) * 9, y: Math.cos(i * 2.71) * 6, z: -4 - ((i * 7) % 24), scale: 0.025 + (i % 5) * 0.012,
   })), []);
   useEffect(() => { debris.forEach((item, index) => { dummy.position.set(item.x, item.y, item.z); dummy.rotation.set(index * 0.5, index, index * 0.3); dummy.scale.setScalar(item.scale); dummy.updateMatrix(); ref.current?.setMatrixAt(index, dummy.matrix); }); if (ref.current) ref.current.instanceMatrix.needsUpdate = true; }, [debris, dummy]);
+  useFrame(() => {
+    if (ref.current) ref.current.count = Math.floor(rig.current.progress || 0) === 3 ? 12 : debris.length;
+  });
   return <instancedMesh ref={ref} args={[null, null, debris.length]}><icosahedronGeometry args={[1, 0]} /><meshStandardMaterial color={themeColor('--debris')} roughness={0.9} /></instancedMesh>;
 }
 
@@ -157,7 +162,7 @@ function FooterHorizon({ rig, camera }) {
   const group = useRef();
   useFrame((_, delta) => {
     if (!group.current) return;
-    const visible = (rig.current.progress || 0) >= 6;
+    const visible = (rig.current.progress || 0) >= 7;
     const root = rig.current.root;
     const targetScale = visible ? 1 : 0.001;
     group.current.scale.setScalar(THREE.MathUtils.damp(group.current.scale.x, targetScale, 1.8, delta));
@@ -177,11 +182,11 @@ function World({ rig, pointer }) {
     if (!root.current) return;
     rig.current.root = root.current.position;
     const progress = rig.current.progress || 0;
-    const section = Math.min(6, Math.floor(progress));
+    const section = Math.min(7, Math.floor(progress));
     root.current.position.x = THREE.MathUtils.damp(root.current.position.x, rig.current.x + pointer.current.x * 0.25, 3, delta);
     root.current.position.y = THREE.MathUtils.damp(root.current.position.y, rig.current.y + pointer.current.y * 0.16, 3, delta);
     root.current.position.z = THREE.MathUtils.damp(root.current.position.z, rig.current.z, 3, delta);
-    const cameraZ = [9, 8.5, 7.8, 8.2, 9, 8.1, 8.5][section];
+    const cameraZ = [9, 8.5, 7.8, 7.1, 8.2, 9, 8.1, 8.5][section];
     camera.position.x = THREE.MathUtils.damp(camera.position.x, pointer.current.x * 0.12, 2, delta);
     camera.position.y = THREE.MathUtils.damp(camera.position.y, -progress * 0.05 + pointer.current.y * 0.08, 2, delta);
     camera.position.z = THREE.MathUtils.damp(camera.position.z, cameraZ, 2, delta);
@@ -195,14 +200,14 @@ function World({ rig, pointer }) {
   return <group ref={root}>
     <ambientLight intensity={0.8} />
     <directionalLight position={[3, 5, 6]} intensity={1.1} color={themeColor('--space-light')} />
-    <StarField />
+    <StarField rig={rig} />
     <Float speed={0.15} rotationIntensity={0.04} floatIntensity={0.06}>
       <group position={[20, 0.25, -5]}>
         <mesh><sphereGeometry args={[1.35, 48, 32]} /><meshStandardMaterial color={themeColor('--planet')} roughness={0.95} metalness={0.05} /></mesh>
         <mesh rotation={[0.25, 0.1, -0.32]}><torusGeometry args={[2.05, 0.035, 8, 120]} /><meshStandardMaterial color={themeColor('--planet-ring')} roughness={0.8} /></mesh>
       </group>
     </Float>
-    <Debris />
+    <Debris rig={rig} />
     <group ref={build} position={[-5.2, 0, -2.4]} scale={0.001}>
       {[0, 1, 2, 3].map((layer) => <mesh key={layer} position={[layer * 0.05, layer * 0.18, -layer * 0.14]} rotation={[0.08, 0.18, 0.02]}>
         <boxGeometry args={[1.7 - layer * 0.1, 0.13, 1.15 - layer * 0.08]} />

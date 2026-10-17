@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { AUTO_SEQUENCE, COMPOSITION, KEYS, KEY_SIZE, SEQUENCE_TIMING } from '../config/keyboard.js';
 import { DIALOGS } from '../config/dialogs.js';
-import { CONTACT_EMAIL } from '../config/site.js';
 import usePrefersReducedMotion from '../hooks/usePrefersReducedMotion.js';
 import Dialog from './Dialog.jsx';
 
@@ -30,11 +29,11 @@ function EnterArrow() {
 }
 
 /**
- * One key. Contact keys are anchors (`mailto:`), everything else is a native
+ * One key. Contact keys are in-page anchors, everything else is a native
  * <button> that opens a dialog. All press motion is CSS; React only toggles
  * `is-pressed` while the automatic sequence runs.
  */
-function Key({ def, pressed, onOpenDialog }) {
+function Key({ def, pressed, onOpenDialog, onSpaceActivate }) {
   const { id, layer, x, y, w = KEY_SIZE.width, h = KEY_SIZE.height, letter, caption, name, face, base, action } = def;
 
   const className = `kb-key kb-key--${layer}${pressed ? ' is-pressed' : ''}`;
@@ -60,14 +59,21 @@ function Key({ def, pressed, onOpenDialog }) {
     </>
   );
 
-  if (action.kind === 'mailto') {
+  if (action.kind === 'anchor') {
     return (
       <a
         className={className}
         style={style}
-        href={`mailto:${CONTACT_EMAIL}`}
+        href={action.href}
         aria-label={name}
         data-key-id={id}
+        onKeyDown={(event) => {
+          if (event.code === 'Space') {
+            event.preventDefault();
+            onSpaceActivate(id);
+            event.currentTarget.click();
+          }
+        }}
       >
         {inner}
       </a>
@@ -102,6 +108,7 @@ function Key({ def, pressed, onOpenDialog }) {
 export default function Keyboard({ enabled = true }) {
   const stageRef = useRef(null);
   const triggerRef = useRef(null);
+  const suppressFocusReturnRef = useRef(false);
 
   const [layout, setLayout] = useState({ scale: 1, offset: 0 });
   const [pressedId, setPressedId] = useState(null);
@@ -206,11 +213,25 @@ export default function Keyboard({ enabled = true }) {
 
   const closeDialog = useCallback(() => {
     setActiveDialog(null);
+    if (suppressFocusReturnRef.current) {
+      suppressFocusReturnRef.current = false;
+      return;
+    }
     const trigger = triggerRef.current;
     if (trigger && typeof trigger.focus === 'function') {
       // Hand focus back to the key that opened the dialog.
       requestAnimationFrame(() => trigger.focus());
     }
+  }, []);
+
+  const closeDialogForNavigation = useCallback(() => {
+    suppressFocusReturnRef.current = true;
+    setActiveDialog(null);
+  }, []);
+
+  const activateAnchorBySpace = useCallback((id) => {
+    setPressedId(id);
+    window.setTimeout(() => setPressedId((current) => current === id ? null : current), SEQUENCE_TIMING.hold);
   }, []);
 
   const handleBlur = (event) => {
@@ -234,10 +255,14 @@ export default function Keyboard({ enabled = true }) {
         aria-label="Keyboard menu, pick a key"
       >
         {KEYS.map((def) => (
-          <Key key={def.id} def={def} pressed={pressedId === def.id} onOpenDialog={openDialog} />
+          <Key key={def.id} def={def} pressed={pressedId === def.id} onOpenDialog={openDialog} onSpaceActivate={activateAnchorBySpace} />
         ))}
       </div>
-      <Dialog content={activeDialog ? DIALOGS[activeDialog] : null} onClose={closeDialog} />
+      <Dialog
+        content={activeDialog ? DIALOGS[activeDialog] : null}
+        onClose={closeDialog}
+        onSectionNavigate={closeDialogForNavigation}
+      />
     </div>
   );
 }

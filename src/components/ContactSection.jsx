@@ -42,7 +42,7 @@ export default function ContactSection({ sceneEnabled = false }) {
     <div className="site-container">
       <div className="contact-layout">
         <div className="contact-intro">
-          <p className="eyebrow">//06 CONTACT</p>
+          <p className="eyebrow">//07 CONTACT</p>
           <h2 id="contact-title" className="heading-xl mt-3">Contact.</h2>
           <p className="lede mt-5 max-w-3xl">Good design starts with hello. Have a project in mind, a half-formed idea, or just want to say hi?</p>
         </div>

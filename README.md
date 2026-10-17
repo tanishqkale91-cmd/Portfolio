@@ -6,8 +6,8 @@ Personal portfolio with an interactive keyboard hero, a scroll-responsive 3D spa
 
 ## Features
 
-- Responsive Work, About, Stack, Activity, Contact, and footer sections.
-- Keyboard-inspired hero with accessible project dialogs and direct email links.
+- Responsive Work, About, Experience, Stack, Activity, Contact, and footer sections.
+- Keyboard-inspired hero with accessible project dialogs and direct in-page contact links.
 - One lazy-loaded Three.js canvas for the scroll flight, DOM-tracked contact key scene, and footer horizon.
 - Static contact and footer fallbacks for reduced motion, low-power devices, and unsupported WebGL.
 - GitHub contribution activity and LeetCode statistics integrations.
@@ -72,6 +72,7 @@ src/styles/             Component-specific styles
 
 - Change the contact email and GitHub or LeetCode profile settings in `src/config/site.js`. The contact address is defined once as `CONTACT_EMAIL`.
 - Add or update projects in `src/config/projects.js`.
+- Add or update work history in `src/config/experience.js`. Organization icons live in `public/icons/`: use `gfg-rbu.svg`, `.png`, `.webp`, or `.jpeg` for GeeksforGeeks, and `mechhelp.svg`, `.png`, or `.webp` when a Mechhelp logo is available. The supplied GeeksforGeeks JPEG is included as `public/icons/gfg-rbu.jpeg`; Mechhelp currently uses its monogram fallback.
 - Update portfolio copy and dialog text in `src/config/content.js` and `src/config/dialogs.js`.
 - Change the near-black background, green accent, border, and keycap presentation tokens in `src/index.css`.
 

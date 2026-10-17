@@ -1,5 +1,4 @@
 import { useEffect, useId, useRef } from 'react';
-import { CONTACT_EMAIL } from '../config/site.js';
 import { setScrollLocked } from '../lib/smoothScroll.js';
 import { projects } from '../config/projects.js';
 
@@ -11,7 +10,7 @@ import { projects } from '../config/projects.js';
  * event. The `close` event is also where we hand focus back to the key that
  * opened the dialog.
  */
-export default function Dialog({ content, onClose }) {
+export default function Dialog({ content, onClose, onSectionNavigate }) {
   const dialogRef = useRef(null);
   const titleId = useId();
 
@@ -61,17 +60,30 @@ export default function Dialog({ content, onClose }) {
           ) : null}
           <div className="site-dialog__actions">
             {content.sectionLink ? (
-              <a
-                className="btn-solid"
-                href={content.sectionLink.href}
-                onClick={close}
-                data-dialog-section-link="true"
-              >
+            <a
+              className="btn-solid"
+              href={content.sectionLink.href}
+              onClick={(event) => {
+                if (event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) close();
+              }}
+              data-dialog-section-link="true"
+            >
                 {content.sectionLink.label}
               </a>
             ) : null}
-            <a className="btn-ghost" href={`mailto:${CONTACT_EMAIL}`}>
-              Let&apos;s talk
+            <a
+              className="btn-ghost"
+              href="#contact"
+              onClick={(event) => {
+                if (event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) {
+                  setScrollLocked(false);
+                  onSectionNavigate();
+                  close();
+                }
+              }}
+              data-dialog-contact-link="true"
+            >
+              Contact me
             </a>
           </div>
         </div>
