@@ -9,6 +9,8 @@ const errors = [];
 const output = [];
 const checks = {};
 const contactEmail = 'tanishqkale91@gmail.com';
+const contactMailto = `mailto:${contactEmail}`;
+const talkMailto = `${contactMailto}?subject=Hello%20Tanishq`;
 await mkdir('verify', { recursive: true });
 const server = spawn('npm', ['run', 'dev', '--', '--host', '127.0.0.1', '--port', '4179', '--strictPort'], { stdio: 'ignore' });
 let browser;
@@ -29,19 +31,22 @@ try {
     await page.waitForTimeout(350);
     const sizesLabel = `${viewport.width}x${viewport.height}`;
     const measure = await page.evaluate(() => {
-      const wordmark = document.querySelector('.site-header .site-container > a').getBoundingClientRect();
+      const headerWordmark = document.querySelector('.site-header .site-container > a').getBoundingClientRect();
       const grid = document.querySelector('#stack .stack-dom-overlay').getBoundingClientRect();
       const gap = parseFloat(getComputedStyle(document.querySelector('#stack .stack-dom-overlay')).columnGap);
       const clusters = [...document.querySelectorAll('#stack .stack-cluster')].map((node) => ({ name: node.querySelector('.stack-cluster-label').textContent, left: node.getBoundingClientRect().left }));
       const contact = document.querySelector('.contact-channels').getBoundingClientRect();
+      const stage = document.querySelector('#contact-stage-target').getBoundingClientRect();
       const footer = document.querySelector('.footer-grid').getBoundingClientRect();
+      const footerWordmark = document.querySelector('.footer-wordmark').getBoundingClientRect();
       const rows = [...document.querySelectorAll('.contact-channel')].map((node) => ({ label: node.querySelector('.contact-channel__label').textContent, left: node.getBoundingClientRect().left, right: node.getBoundingClientRect().right }));
-      return { headerLeft: wordmark.left, gridLeft: grid.left, gridWidth: grid.width, gap, clusters, contactLeft: contact.left, footerLeft: footer.left, rows, scrollWidth: document.documentElement.scrollWidth, innerWidth };
+      return { headerLeft: headerWordmark.left, gridLeft: grid.left, gridWidth: grid.width, gap, clusters, contactLeft: contact.left, stage: { left: stage.left, top: stage.top, width: stage.width, height: stage.height }, footerLeft: footer.left, footerWordmarkWidth: footerWordmark.width, rows, scrollWidth: document.documentElement.scrollWidth, innerWidth };
     });
     const tolerance = 2;
     if (measure.scrollWidth > viewport.width) errors.push(`${sizesLabel}: horizontal overflow ${measure.scrollWidth}px`);
     if (Math.abs(measure.contactLeft - measure.headerLeft) > tolerance) errors.push(`${sizesLabel}: contact rows do not align with header gutter`);
     if (Math.abs(measure.footerLeft - measure.headerLeft) > tolerance) errors.push(`${sizesLabel}: footer columns do not align with header gutter`);
+    if (measure.footerWordmarkWidth <= 0 || measure.footerWordmarkWidth > viewport.width - 2 * measure.headerLeft + 2) errors.push(`${sizesLabel}: footer wordmark is clipped or overflows`);
     for (const row of measure.rows) if (row.left < 0 || row.right > viewport.width) errors.push(`${sizesLabel}: ${row.label} channel row overflows viewport`);
     for (const cluster of measure.clusters) if (Math.abs(cluster.left - measure.headerLeft) > tolerance && viewport.width < 767) errors.push(`${sizesLabel}: ${cluster.name} left ${cluster.left}px differs from header ${measure.headerLeft}px`);
     if (viewport.width >= 767) {
@@ -101,16 +106,63 @@ try {
   await normalNavigation.goto(origin, { waitUntil: 'domcontentloaded' });
   await normalNavigation.waitForSelector('#contact .contact-channel');
   const mailto = await normalNavigation.locator('a[href^="mailto:"]').evaluateAll((links) => links.map((link) => link.getAttribute('href')));
-  if (!mailto.length || mailto.some((href) => href !== `mailto:${contactEmail}`)) errors.push(`mailto links did not all use the configured address: ${JSON.stringify(mailto)}`);
+  const headerEmail = await normalNavigation.locator('header a[href^="mailto:"]').getAttribute('href');
+  const footerEmail = await normalNavigation.locator('footer nav[aria-label="Footer channels"] a[href^="mailto:"]').getAttribute('href');
+  const contactEmailHref = await normalNavigation.locator('[data-contact-email]').getAttribute('href');
+  const enterEmail = await normalNavigation.locator('[data-key-id="enter"]').getAttribute('href');
+  const finalOEmail = await normalNavigation.locator('[data-key-id="o-final"]').getAttribute('href');
+  if (headerEmail !== talkMailto || footerEmail !== contactMailto || contactEmailHref !== contactMailto || enterEmail !== contactMailto || finalOEmail !== contactMailto) errors.push(`email entry points mismatch: ${JSON.stringify({ headerEmail, footerEmail, contactEmailHref, enterEmail, finalOEmail })}`);
+  if (mailto.length !== 5 || mailto.filter((href) => href === contactMailto).length !== 4 || !mailto.includes(talkMailto)) errors.push(`unexpected mailto anchors: ${JSON.stringify(mailto)}`);
+  await normalNavigation.evaluate(() => {
+    window.__mailtoChecks = [];
+    window.addEventListener('click', (event) => {
+      const link = event.target instanceof Element ? event.target.closest('a[href^="mailto:"]') : null;
+      if (link) window.__mailtoChecks.push({ href: link.getAttribute('href'), prevented: event.defaultPrevented });
+    });
+  });
+  const talkLink = normalNavigation.locator('header a[href^="mailto:"]');
+  await talkLink.click();
+  await talkLink.focus();
+  await talkLink.press('Enter');
+  await talkLink.focus();
+  await talkLink.press('Space');
+  await normalNavigation.locator('[data-contact-email]').click();
+  await normalNavigation.locator('footer nav[aria-label="Footer channels"] a[href^="mailto:"]').click();
+  await normalNavigation.locator('[data-key-id="enter"]').click();
+  await normalNavigation.locator('[data-key-id="o-final"]').click();
+  const mailtoClicks = await normalNavigation.evaluate(() => window.__mailtoChecks);
+  if (mailtoClicks.length !== 7 || mailtoClicks.some((click) => click.prevented)) errors.push(`mailto clicks were prevented or not observed: ${JSON.stringify(mailtoClicks)}`);
   await normalNavigation.locator('[data-key-id="p"]').click();
   const dialogMailto = await normalNavigation.locator('dialog a[href^="mailto:"]').getAttribute('href');
   if (dialogMailto !== `mailto:${contactEmail}`) errors.push(`keyboard dialog mailto was ${dialogMailto}`);
   await normalNavigation.locator('dialog .site-dialog__close').click();
+  await normalNavigation.context().grantPermissions(['clipboard-read', 'clipboard-write']);
+  await normalNavigation.locator('.contact-copy-button').click();
+  await normalNavigation.getByText('Copied', { exact: true }).waitFor({ timeout: 3000 });
+  const copiedText = await normalNavigation.evaluate(() => navigator.clipboard.readText());
+  if (copiedText !== contactEmail) errors.push(`clipboard contained ${JSON.stringify(copiedText)}`);
+  checks.copyEmail = copiedText === contactEmail ? 'clipboard contents and live announcement passed' : 'failed';
+  const frameRate = await normalNavigation.evaluate(() => new Promise((resolve) => {
+    let frames = 0; let first;
+    const tick = (time) => { first ??= time; frames += 1; if (time - first >= 1500) resolve(Math.round((frames - 1) * 1000 / (time - first))); else requestAnimationFrame(tick); };
+    requestAnimationFrame(tick);
+  }));
+  checks.sampledFrameRate = `${frameRate} fps in headless Chromium`;
   await assertNavigation(normalNavigation, 'normal');
   checks.mailtoLinks = mailto.length;
+  checks.mailtoClicks = 'header mouse, header Enter and Space, footer, contact row, Enter key, and final O were not prevented';
   checks.normalNavigation = 'footer navigation, header anchors, and Back to top landed, updated hash, and focused target';
   await normalNavigation.close();
 
+  for (const viewport of sizes) {
+    const reducedShots = await browser.newPage({ viewport, reducedMotion: 'reduce' });
+    await reducedShots.addInitScript(() => sessionStorage.setItem('tanishq-portfolio-loaded', '1'));
+    await reducedShots.goto(`${origin}/?reduced=1`, { waitUntil: 'domcontentloaded' });
+    await reducedShots.waitForSelector('#contact-stage-target .contact-stage__fallback');
+    await reducedShots.locator('#contact').screenshot({ path: `verify/${viewport.width}x${viewport.height}-contact-reduced.png`, animations: 'disabled' });
+    await reducedShots.locator('#footer').screenshot({ path: `verify/${viewport.width}x${viewport.height}-footer-reduced.png`, animations: 'disabled' });
+    await reducedShots.close();
+  }
   const reduced = await browser.newPage({ viewport: sizes[0], reducedMotion: 'reduce' });
   reduced.on('console', (message) => { if (message.type() === 'error') errors.push(`reduced: ${message.text()}`); });
   reduced.on('pageerror', (error) => errors.push(`reduced: ${error.message}`));
@@ -126,12 +178,21 @@ try {
   await reduced.close();
 
   const noWebglBrowser = await chromium.launch({ headless: true, args: ['--disable-gpu', '--disable-webgl'] });
+  for (const viewport of sizes) {
+    const noWebglShot = await noWebglBrowser.newPage({ viewport });
+    await noWebglShot.addInitScript(() => sessionStorage.setItem('tanishq-portfolio-loaded', '1'));
+    await noWebglShot.goto(origin, { waitUntil: 'domcontentloaded' });
+    await noWebglShot.waitForSelector('#contact-stage-target .contact-stage__fallback');
+    await noWebglShot.locator('#contact').screenshot({ path: `verify/${viewport.width}x${viewport.height}-contact-webgl-off.png`, animations: 'disabled' });
+    await noWebglShot.locator('#footer').screenshot({ path: `verify/${viewport.width}x${viewport.height}-footer-webgl-off.png`, animations: 'disabled' });
+    await noWebglShot.close();
+  }
   const noWebgl = await noWebglBrowser.newPage({ viewport: sizes[2] });
   noWebgl.on('console', (message) => { if (message.type() === 'error') errors.push(`webgl-off: ${message.text()}`); });
   noWebgl.on('pageerror', (error) => errors.push(`webgl-off: ${error.message}`));
   await noWebgl.addInitScript(() => sessionStorage.setItem('tanishq-portfolio-loaded', '1'));
   await noWebgl.goto(origin, { waitUntil: 'domcontentloaded' });
-  await noWebgl.waitForSelector('#stack .stack-grid.is-static');
+  await noWebgl.waitForSelector('#contact-stage-target .contact-stage__fallback');
   const fallback = await noWebgl.locator('#stack .stack-cluster').count();
   if (fallback !== 4) errors.push(`webgl-off: expected 4 aligned fallback clusters, found ${fallback}`);
   await assertNavigation(noWebgl, 'webgl-off');

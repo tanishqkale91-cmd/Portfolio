@@ -24,10 +24,16 @@ export default function Header() {
                 <li key={link.label}>
                   <a
                     href={link.href}
+                    onKeyDown={isContact ? (event) => {
+                      if (event.code === 'Space') {
+                        event.preventDefault();
+                        event.currentTarget.click();
+                      }
+                    } : undefined}
                     className={[
-                      'flex min-h-[44px] items-center px-0.5 text-[13px] font-semibold transition-colors sm:px-2 sm:text-[15px]',
+                      'flex min-h-[44px] items-center px-0.5 text-[13px] font-semibold text-accent transition-colors hover:text-white focus-visible:text-white sm:px-2 sm:text-[15px]',
                       isContact
-                        ? 'text-accent hover:text-white'
+                        ? 'underline decoration-1 underline-offset-4'
                         : 'text-ink/75 hover:text-accent',
                     ].join(' ')}
                   >

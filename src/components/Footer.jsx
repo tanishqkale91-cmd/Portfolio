@@ -12,15 +12,15 @@ function formatTime() {
   }).format(new Date());
 }
 
-export default function Footer() {
+export default function Footer({ sceneEnabled = false }) {
   const [time, setTime] = useState(formatTime);
   useEffect(() => {
     const timer = window.setInterval(() => setTime(formatTime()), 1000);
     return () => window.clearInterval(timer);
   }, []);
 
-  return <footer className="site-footer py-10 md:py-12">
-    <div className="site-container">
+  return <footer id="footer" className={`site-footer py-10 md:py-12${sceneEnabled ? '' : ' site-footer--fallback'}`}>
+    <div className="site-container site-footer__content">
       <div className="footer-grid">
         <nav aria-label="Footer navigation">
           <h2 className="footer-heading">NAVIGATE</h2>

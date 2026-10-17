@@ -1,5 +1,6 @@
 /** Site-wide personal settings and external endpoints. */
 export const CONTACT_EMAIL = 'tanishqkale91@gmail.com';
+export const CONTACT_MAILTO_SUBJECT = `mailto:${CONTACT_EMAIL}?subject=Hello%20Tanishq`;
 export const GITHUB_URL = 'https://github.com/tanishqkale91-cmd';
 export const GITHUB_HANDLE = 'tanishqkale91-cmd';
 export const CONTRIBUTIONS_API_URL = `https://github-contributions-api.jogruber.de/v4/${GITHUB_HANDLE}?y=last`;
@@ -15,5 +16,5 @@ export const NAV_LINKS = [
   { label: 'Work', href: '#work' },
   { label: 'About', href: '#about' },
   { label: 'Stack', href: '#stack' },
-  { label: "Let's talk", href: `mailto:${CONTACT_EMAIL}` },
+  { label: "Let's talk", href: CONTACT_MAILTO_SUBJECT },
 ];

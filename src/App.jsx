@@ -107,10 +107,10 @@ export default function App() {
         <AboutSection />
         <StackSection />
         <ActivitySection />
-        <ContactSection />
+        <ContactSection sceneEnabled={!reducedMotion && webgl && !smallLowPower} />
       </main>
 
-      <Footer />
+        <Footer sceneEnabled={!reducedMotion && webgl && !smallLowPower} />
     </>
   );
 }

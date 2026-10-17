@@ -1,16 +1,18 @@
 # Tanishq Kale Portfolio
 
-Personal portfolio with an interactive keyboard hero, a section-aware 3D space scene, selected projects, and live coding activity.
+Personal portfolio with an interactive keyboard hero, a scroll-responsive 3D space scene, selected projects, live coding activity, and a contact area that leads into the footer scene.
 
 **Live site:** [portfolio-lovat-pi-speucrunnm.vercel.app](https://portfolio-lovat-pi-speucrunnm.vercel.app/)
 
 ## Features
 
 - Responsive Work, About, Stack, Activity, Contact, and footer sections.
-- Keyboard-inspired hero with contact links and accessible project dialogs.
-- Lazy-loaded Three.js scene with scroll and pointer response, plus static fallbacks for reduced motion, low-power devices, and unsupported WebGL.
+- Keyboard-inspired hero with accessible project dialogs and direct email links.
+- One lazy-loaded Three.js canvas for the scroll flight, DOM-tracked contact key scene, and footer horizon.
+- Static contact and footer fallbacks for reduced motion, low-power devices, and unsupported WebGL.
 - GitHub contribution activity and LeetCode statistics integrations.
 - Keyboard-accessible in-page navigation with smooth scrolling and focus management.
+- Contact email copy control with a clipboard fallback.
 
 ## Tech stack
 
@@ -71,6 +73,7 @@ src/styles/             Component-specific styles
 - Change the contact email and GitHub or LeetCode profile settings in `src/config/site.js`. The contact address is defined once as `CONTACT_EMAIL`.
 - Add or update projects in `src/config/projects.js`.
 - Update portfolio copy and dialog text in `src/config/content.js` and `src/config/dialogs.js`.
+- Change the near-black background, green accent, border, and keycap presentation tokens in `src/index.css`.
 
 ## Available scripts
 
