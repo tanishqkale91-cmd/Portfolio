@@ -2,6 +2,9 @@
 
 A personal portfolio with an original DOM keyboard, a fixed 3D space scene, and a live GitHub contribution graph.
 
+## Deployed Link
+https://portfolio-lovat-pi-speucrunnm.vercel.app/
+
 ## Run locally
 
 ```sh
